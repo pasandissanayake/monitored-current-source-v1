@@ -318,7 +318,7 @@ def start_job():
         log('COM port automatically detected: ' + port + '\n')
         print('COM port automatically detected: ' + port + '\n')
     COM_PORT = port
-	
+
     senseResVal = 22
     print(Fore.LIGHTYELLOW_EX + "Sense resistor value (in Ohms):" + Style.RESET_ALL + ' 22');
     maxVoltage = read_user(Fore.LIGHTYELLOW_EX + "Maximum load voltage (in Volts): " + Style.RESET_ALL, 'f')
@@ -364,7 +364,7 @@ def calibrate():
 # lastReadValues[senseVoltage, loadVoltage, pidValue, outputValue, stepValue]
 
 warnings.simplefilter('ignore')
-warnings.filterwarnings('ignore')
+warnings.filterwarnings(action='ignore')
 colorama.init()
 
 while True:
