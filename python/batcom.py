@@ -318,14 +318,15 @@ def start_job():
         log('COM port automatically detected: ' + port + '\n')
         print('COM port automatically detected: ' + port + '\n')
     COM_PORT = port
-
-    senseResVal = read_user(Fore.LIGHTYELLOW_EX + "Sense resistor value (in Ohms):" + Style.RESET_ALL, 'f')
-    maxVoltage = read_user(Fore.LIGHTYELLOW_EX + "Maximum load voltage (in Volts):" + Style.RESET_ALL, 'f')
-    chargeCurrent = read_user(Fore.LIGHTYELLOW_EX + "Charging current (in mili Amperes):" + Style.RESET_ALL, 'f')
+	
+    senseResVal = 22
+    print(Fore.LIGHTYELLOW_EX + "Sense resistor value (in Ohms):" + Style.RESET_ALL + ' 22');
+    maxVoltage = read_user(Fore.LIGHTYELLOW_EX + "Maximum load voltage (in Volts): " + Style.RESET_ALL, 'f')
+    chargeCurrent = read_user(Fore.LIGHTYELLOW_EX + "Charging current (in mili Amperes): " + Style.RESET_ALL, 'f')
     calibrate()
     com = Com()
     rec = Rec()
-    if read_user(Fore.LIGHTYELLOW_EX + "Start job? (y/n):" + Style.RESET_ALL, 'y'):
+    if read_user(Fore.LIGHTYELLOW_EX + "Start job? (y/n): " + Style.RESET_ALL, 'y'):
         com.start()
         rec.start()
 
@@ -341,8 +342,10 @@ def end_job(com, rec):
 
 
 def calibrate():
-    a1 = read_user(Fore.LIGHTYELLOW_EX + '5V output measured as (in V):' + Style.RESET_ALL, 'f')
-    a2 = read_user(Fore.LIGHTYELLOW_EX + 'GND output measured as (in V):' + Style.RESET_ALL, 'f')
+    a1 = 4.7
+    print(Fore.LIGHTYELLOW_EX + '5V output measured as (in V):' + Style.RESET_ALL + ' 4.7')
+    a2 = 0.0
+    print(Fore.LIGHTYELLOW_EX + 'GND output measured as (in V):' + Style.RESET_ALL + ' 0.0')
     if a1 != a2:
         calibrationArray[0] = 1023 * (5.0 - a2) / (a1 - a2)
         calibrationArray[1] = -1023 * a2 / (a1 - a2)
@@ -364,82 +367,83 @@ warnings.simplefilter('ignore')
 warnings.filterwarnings('ignore')
 colorama.init()
 
-if read_user(Fore.LIGHTYELLOW_EX + "Start new job? (y/n):" + Style.RESET_ALL, 'y'):
-    jobEnd = False
-    com, rec = start_job()
-    while True:
-        if jobEnd:
-            comm = read_user(Fore.LIGHTYELLOW_EX + "job_completed >" + Style.RESET_ALL)
-        else:
-            comm = read_user(Fore.LIGHTYELLOW_EX + ">" + Style.RESET_ALL)
-        comm = comm.strip()
-        if comm == 'watch':
-            k = 0
-            while not keyboard.is_pressed('q'):
-                if k > 100:
-                    loadCurrent = 1000 * lastReadValues[0] / senseResVal
-                    loadVoltage = lastReadValues[1] - lastReadValues[0] + LV_CONST
-                    if loadCurrent != 0: load = loadVoltage / loadCurrent
-                    else: load = 'Inf'
-                    print('Load:' + str(load) + ' Ohm', ' Current:' + str(loadCurrent) + ' mA', ' Voltage:' + str(loadVoltage) + ' V\n',
-                          'pid:' + str(lastReadValues[2]), 'output:' + str(lastReadValues[3]), 'step:' + str(lastReadValues[4]))
-                    #print( 'pid:' + str(lastReadValues[2]), 'output:' + str(lastReadValues[3]), 'step:' + str(lastReadValues[4]))
-                    k = 0
-                k += 1
-                time.sleep(0.005)
-        elif comm == 'seti':
-            chargeCurrent = read_user(Fore.LIGHTYELLOW_EX + 'Target current in mA:' + Style.RESET_ALL, 'f')
-            print('Charge current set to', chargeCurrent, 'mA')
-        elif comm == 'setv':
-            maxVoltage = read_user(Fore.LIGHTYELLOW_EX + 'Maximum voltage in V:' + Style.RESET_ALL, 'f')
-            jobEnd = False
-            print('Maximum voltage set to', maxVoltage, 'V')
-        elif comm == 'setr':
-            senseResVal = read_user(Fore.LIGHTYELLOW_EX + 'Sense resistor value in Ohm:' + Style.RESET_ALL, 'f')
-            print('Sense resistor value set to', senseResVal, 'Ohm')
-        elif comm == 'calib':
-            calibrate()
-            print('Calibration done')
-        elif comm == 'plti':
-            plotRequest = 'lc'
-        elif comm == 'pltv':
-            plotRequest = 'lv'
-        elif comm == 'pltr':
-            plotRequest = 'lr'
-        elif comm == 'fixi':
-            com.fixRequest.set()
-        elif comm == 'reli':
-            com.fixRequest.clear()
-        elif comm == 'show':
-            print('Output file:', outputFilePath, '\nSense resistor:', senseResVal, 'Ohm\nMaximum load voltage:',maxVoltage,
-                  'V\nCharging current',chargeCurrent,'mA')
-        elif comm == 'end':
-            val = read_user(Fore.LIGHTRED_EX + 'Are you sure? (y/n):' + Style.RESET_ALL, 'y')
-            if val:
-                end_job(com, rec)
-                exit(0)
-        elif comm == 'help':
-            print('Usage:\n')
-            print('watch - print current values periodically')
-            print('seti - set charging current')
-            print('setv - set maximum voltage')
-            print('setr - set sense resistor value')
-            print('calib - initiate a calibration dialog')
-            print('plti - view load current vs time plot')
-            print('pltv - view load voltage vs time plot')
-            print('pltr - view load resistance vs time plot')
-            print('fixi - fix charging current without further changes')
-            print('reli - release fixed state of charging current to allow variations')
-            print('show - show current job parameters')
-            print('end - end current job')
-            print('help - display this message')
-            print('\nEnjoy!!')
-        elif comm != '':
-            print('No such command - ' + str(comm) + '. List of commands:\nwatch, seti, setv, setr, calib, plti, pltv, pltr, fixi, reli, show, end, help')
-            print('For more details try help.')
-
-    print('Something went wrong!!')
-    exit(1)
-else:
-    print('Have a nice day!!')
-    exit(0)
+while True:
+    if read_user(Fore.LIGHTYELLOW_EX + "Start new job? (y/n): " + Style.RESET_ALL, 'y'):
+        jobEnd = False
+        file = open('log.txt', 'w')
+        file.write(str(time.time()) + ': job started\n')
+        file.close()
+        com, rec = start_job()
+        while True:
+            if jobEnd:
+                comm = read_user(Fore.LIGHTYELLOW_EX + "job_completed >" + Style.RESET_ALL)
+            else:
+                comm = read_user(Fore.LIGHTYELLOW_EX + ">" + Style.RESET_ALL)
+            comm = comm.strip()
+            if comm == 'watch':
+                k = 0
+                while not keyboard.is_pressed('q'):
+                    if k > 100:
+                        loadCurrent = 1000 * lastReadValues[0] / senseResVal
+                        loadVoltage = lastReadValues[1] - lastReadValues[0] + LV_CONST
+                        if loadCurrent != 0: load = loadVoltage / loadCurrent
+                        else: load = 'Inf'
+                        print('Load:' + str(load) + ' Ohm', ' Current:' + str(loadCurrent) + ' mA', ' Voltage:' + str(loadVoltage) + ' V\n',
+                              'pid:' + str(lastReadValues[2]), 'output:' + str(lastReadValues[3]), 'step:' + str(lastReadValues[4]))
+                        #print( 'pid:' + str(lastReadValues[2]), 'output:' + str(lastReadValues[3]), 'step:' + str(lastReadValues[4]))
+                        k = 0
+                    k += 1
+                    time.sleep(0.005)
+            elif comm == 'seti':
+                chargeCurrent = read_user(Fore.LIGHTYELLOW_EX + 'Target current in mA:' + Style.RESET_ALL, 'f')
+                print('Charge current set to', chargeCurrent, 'mA')
+            elif comm == 'setv':
+                maxVoltage = read_user(Fore.LIGHTYELLOW_EX + 'Maximum voltage in V:' + Style.RESET_ALL, 'f')
+                jobEnd = False
+                print('Maximum voltage set to', maxVoltage, 'V')
+            elif comm == 'setr':
+                # senseResVal = read_user(Fore.LIGHTYELLOW_EX + 'Sense resistor value in Ohm:' + Style.RESET_ALL, 'f')
+                print('Sense resistor value set to', senseResVal, 'Ohm')
+            elif comm == 'calib':
+                calibrate()
+                print('Calibration done')
+            elif comm == 'plti':
+                plotRequest = 'lc'
+            elif comm == 'pltv':
+                plotRequest = 'lv'
+            elif comm == 'pltr':
+                plotRequest = 'lr'
+            elif comm == 'fixi':
+                com.fixRequest.set()
+            elif comm == 'reli':
+                com.fixRequest.clear()
+            elif comm == 'show':
+                print('Output file:', outputFilePath, '\nSense resistor:', senseResVal, 'Ohm\nMaximum load voltage:',maxVoltage,
+                      'V\nCharging current',chargeCurrent,'mA')
+            elif comm == 'end':
+                val = read_user(Fore.LIGHTRED_EX + 'Are you sure? (y/n):' + Style.RESET_ALL, 'y')
+                if val:
+                    end_job(com, rec)
+                    break
+            elif comm == 'help':
+                print('Usage:\n')
+                print('watch - print current values periodically')
+                print('seti - set charging current')
+                print('setv - set maximum voltage')
+                print('setr - set sense resistor value (disabled in this version)')
+                print('calib - initiate a calibration dialog (disabled in this version)')
+                print('plti - view load current vs time plot')
+                print('pltv - view load voltage vs time plot')
+                print('pltr - view load resistance vs time plot')
+                print('fixi - fix charging current without further changes')
+                print('reli - release fixed state of charging current to allow variations')
+                print('show - show current job parameters')
+                print('end - end current job')
+                print('help - display this message')
+                print('\nEnjoy!!')
+            elif comm != '':
+                print('No such command - ' + str(comm) + '. List of commands:\nwatch, seti, setv, setr, calib, plti, pltv, pltr, fixi, reli, show, end, help')
+                print('For more details try help.')
+    else:
+        print('Have a nice day!!')
+        exit(0)
